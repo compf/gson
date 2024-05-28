@@ -63,7 +63,7 @@ public final class GsonTest {
 
   @Test
   public void testStrictnessDefault() {
-    assertThat(new Gson().strictness).isNull();
+    assertThat(new Gson().gsonConfigurationOptions.getStrictness()).isNull();
   }
 
   @Test
@@ -92,7 +92,7 @@ public final class GsonTest {
             CUSTOM_NUMBER_TO_NUMBER_STRATEGY,
             Collections.<ReflectionAccessFilter>emptyList());
 
-    assertThat(gson.excluder).isEqualTo(CUSTOM_EXCLUDER);
+    assertThat(gson.gsonConfigurationOptions.getExcluder()).isEqualTo(CUSTOM_EXCLUDER);
     assertThat(gson.fieldNamingStrategy()).isEqualTo(CUSTOM_FIELD_NAMING_STRATEGY);
     assertThat(gson.serializeNulls()).isTrue();
     assertThat(gson.htmlSafe()).isFalse();
@@ -127,7 +127,7 @@ public final class GsonTest {
     Gson clone =
         original.newBuilder().registerTypeAdapter(int.class, new TestTypeAdapter()).create();
 
-    assertThat(clone.factories).hasSize(original.factories.size() + 1);
+    assertThat(clone.gsonConfigurationOptions.getFactories()).hasSize(original.gsonConfigurationOptions.getFactories().size() + 1);
   }
 
   private static final class TestTypeAdapter extends TypeAdapter<Object> {

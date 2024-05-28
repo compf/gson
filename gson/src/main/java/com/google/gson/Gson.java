@@ -188,30 +188,14 @@ public final class Gson {
   private final ConstructorConstructor constructorConstructor;
   private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
 
-  final List<TypeAdapterFactory> factories;
-
-  final Excluder excluder;
-  final FieldNamingStrategy fieldNamingStrategy;
-  final Map<Type, InstanceCreator<?>> instanceCreators;
-  final boolean serializeNulls;
-  final boolean complexMapKeySerialization;
-  final boolean generateNonExecutableJson;
-  final boolean htmlSafe;
-  final FormattingStyle formattingStyle;
-  final Strictness strictness;
-  final boolean serializeSpecialFloatingPointValues;
-  final boolean useJdkUnsafe;
-  final String datePattern;
-  final int dateStyle;
-  final int timeStyle;
-  final LongSerializationPolicy longSerializationPolicy;
-  final List<TypeAdapterFactory> builderFactories;
+    final FieldNamingStrategy fieldNamingStrategy;
+    final boolean htmlSafe;
+    final List<TypeAdapterFactory> builderFactories;
   final List<TypeAdapterFactory> builderHierarchyFactories;
-  final ToNumberStrategy objectToNumberStrategy;
-  final ToNumberStrategy numberToNumberStrategy;
-  final List<ReflectionAccessFilter> reflectionFilters;
+    final List<ReflectionAccessFilter> reflectionFilters;
+    private GsonConfigurationOptions gsonConfigurationOptions = new GsonConfigurationOptions(null, null, null, false, false, false, null, null, false, false, null, 0, 0, null, null, null);
 
-  /**
+    /**
    * Constructs a Gson object with default configuration. The default configuration has the
    * following settings:
    *
@@ -297,27 +281,27 @@ public final class Gson {
       ToNumberStrategy objectToNumberStrategy,
       ToNumberStrategy numberToNumberStrategy,
       List<ReflectionAccessFilter> reflectionFilters) {
-    this.excluder = excluder;
+    this.gsonConfigurationOptions.setExcluder(excluder);
     this.fieldNamingStrategy = fieldNamingStrategy;
-    this.instanceCreators = instanceCreators;
+    this.gsonConfigurationOptions.setInstanceCreators(instanceCreators);
     this.constructorConstructor =
         new ConstructorConstructor(instanceCreators, useJdkUnsafe, reflectionFilters);
-    this.serializeNulls = serializeNulls;
-    this.complexMapKeySerialization = complexMapKeySerialization;
-    this.generateNonExecutableJson = generateNonExecutableGson;
+    this.gsonConfigurationOptions.setSerializeNulls(serializeNulls);
+    this.gsonConfigurationOptions.setComplexMapKeySerialization(complexMapKeySerialization);
+    this.gsonConfigurationOptions.setGenerateNonExecutableJson(generateNonExecutableGson);
     this.htmlSafe = htmlSafe;
-    this.formattingStyle = formattingStyle;
-    this.strictness = strictness;
-    this.serializeSpecialFloatingPointValues = serializeSpecialFloatingPointValues;
-    this.useJdkUnsafe = useJdkUnsafe;
-    this.longSerializationPolicy = longSerializationPolicy;
-    this.datePattern = datePattern;
-    this.dateStyle = dateStyle;
-    this.timeStyle = timeStyle;
+    this.gsonConfigurationOptions.setFormattingStyle(formattingStyle);
+    this.gsonConfigurationOptions.setStrictness(strictness);
+    this.gsonConfigurationOptions.setSerializeSpecialFloatingPointValues(serializeSpecialFloatingPointValues);
+    this.gsonConfigurationOptions.setUseJdkUnsafe(useJdkUnsafe);
+    this.gsonConfigurationOptions.setLongSerializationPolicy(longSerializationPolicy);
+    this.gsonConfigurationOptions.setDatePattern(datePattern);
+    this.gsonConfigurationOptions.setDateStyle(dateStyle);
+    this.gsonConfigurationOptions.setTimeStyle(timeStyle);
     this.builderFactories = builderFactories;
     this.builderHierarchyFactories = builderHierarchyFactories;
-    this.objectToNumberStrategy = objectToNumberStrategy;
-    this.numberToNumberStrategy = numberToNumberStrategy;
+    this.gsonConfigurationOptions.setObjectToNumberStrategy(objectToNumberStrategy);
+    this.gsonConfigurationOptions.setNumberToNumberStrategy(numberToNumberStrategy);
     this.reflectionFilters = reflectionFilters;
 
     List<TypeAdapterFactory> factories = new ArrayList<>();
@@ -395,7 +379,7 @@ public final class Gson {
             jsonAdapterFactory,
             reflectionFilters));
 
-    this.factories = Collections.unmodifiableList(factories);
+    this.gsonConfigurationOptions.setFactories(Collections.unmodifiableList(factories));
   }
 
   /**
@@ -415,7 +399,7 @@ public final class Gson {
    */
   @Deprecated
   public Excluder excluder() {
-    return excluder;
+    return gsonConfigurationOptions.getExcluder();
   }
 
   /**
@@ -434,7 +418,7 @@ public final class Gson {
    * @see GsonBuilder#serializeNulls()
    */
   public boolean serializeNulls() {
-    return serializeNulls;
+    return gsonConfigurationOptions.getSerializeNulls();
   }
 
   /**
@@ -624,7 +608,7 @@ public final class Gson {
       FutureTypeAdapter<T> call = new FutureTypeAdapter<>();
       threadCalls.put(type, call);
 
-      for (TypeAdapterFactory factory : factories) {
+      for (TypeAdapterFactory factory : gsonConfigurationOptions.getFactories()) {
         candidate = factory.create(this, type);
         if (candidate != null) {
           call.setDelegate(candidate);
@@ -736,7 +720,7 @@ public final class Gson {
     }
 
     boolean skipPastFound = false;
-    for (TypeAdapterFactory factory : factories) {
+    for (TypeAdapterFactory factory : gsonConfigurationOptions.getFactories()) {
       if (!skipPastFound) {
         if (factory == skipPast) {
           skipPastFound = true;
@@ -928,8 +912,8 @@ public final class Gson {
     TypeAdapter<Object> adapter = (TypeAdapter<Object>) getAdapter(TypeToken.get(typeOfSrc));
 
     Strictness oldStrictness = writer.getStrictness();
-    if (this.strictness != null) {
-      writer.setStrictness(this.strictness);
+    if (this.gsonConfigurationOptions.getStrictness() != null) {
+      writer.setStrictness(this.gsonConfigurationOptions.getStrictness());
     } else if (writer.getStrictness() == Strictness.LEGACY_STRICT) {
       // For backward compatibility change to LENIENT if writer has default strictness LEGACY_STRICT
       writer.setStrictness(Strictness.LENIENT);
@@ -939,7 +923,7 @@ public final class Gson {
     boolean oldSerializeNulls = writer.getSerializeNulls();
 
     writer.setHtmlSafe(htmlSafe);
-    writer.setSerializeNulls(serializeNulls);
+    writer.setSerializeNulls(gsonConfigurationOptions.getSerializeNulls());
     try {
       adapter.write(writer, src);
     } catch (IOException e) {
@@ -1010,10 +994,10 @@ public final class Gson {
     boolean oldSerializeNulls = writer.getSerializeNulls();
 
     writer.setHtmlSafe(htmlSafe);
-    writer.setSerializeNulls(serializeNulls);
+    writer.setSerializeNulls(gsonConfigurationOptions.getSerializeNulls());
 
-    if (this.strictness != null) {
-      writer.setStrictness(this.strictness);
+    if (this.gsonConfigurationOptions.getStrictness() != null) {
+      writer.setStrictness(this.gsonConfigurationOptions.getStrictness());
     } else if (writer.getStrictness() == Strictness.LEGACY_STRICT) {
       // For backward compatibility change to LENIENT if writer has default strictness LEGACY_STRICT
       writer.setStrictness(Strictness.LENIENT);
@@ -1051,14 +1035,14 @@ public final class Gson {
    * </ul>
    */
   public JsonWriter newJsonWriter(Writer writer) throws IOException {
-    if (generateNonExecutableJson) {
+    if (gsonConfigurationOptions.getGenerateNonExecutableJson()) {
       writer.write(JSON_NON_EXECUTABLE_PREFIX);
     }
     JsonWriter jsonWriter = new JsonWriter(writer);
-    jsonWriter.setFormattingStyle(formattingStyle);
+    jsonWriter.setFormattingStyle(gsonConfigurationOptions.getFormattingStyle());
     jsonWriter.setHtmlSafe(htmlSafe);
-    jsonWriter.setStrictness(strictness == null ? Strictness.LEGACY_STRICT : strictness);
-    jsonWriter.setSerializeNulls(serializeNulls);
+    jsonWriter.setStrictness(gsonConfigurationOptions.getStrictness() == null ? Strictness.LEGACY_STRICT : gsonConfigurationOptions.getStrictness());
+    jsonWriter.setSerializeNulls(gsonConfigurationOptions.getSerializeNulls());
     return jsonWriter;
   }
 
@@ -1076,7 +1060,7 @@ public final class Gson {
    */
   public JsonReader newJsonReader(Reader reader) {
     JsonReader jsonReader = new JsonReader(reader);
-    jsonReader.setStrictness(strictness == null ? Strictness.LEGACY_STRICT : strictness);
+    jsonReader.setStrictness(gsonConfigurationOptions.getStrictness() == null ? Strictness.LEGACY_STRICT : gsonConfigurationOptions.getStrictness());
     return jsonReader;
   }
 
@@ -1347,8 +1331,8 @@ public final class Gson {
     boolean isEmpty = true;
     Strictness oldStrictness = reader.getStrictness();
 
-    if (this.strictness != null) {
-      reader.setStrictness(this.strictness);
+    if (this.gsonConfigurationOptions.getStrictness() != null) {
+      reader.setStrictness(this.gsonConfigurationOptions.getStrictness());
     } else if (reader.getStrictness() == Strictness.LEGACY_STRICT) {
       // For backward compatibility change to LENIENT if reader has default strictness LEGACY_STRICT
       reader.setStrictness(Strictness.LENIENT);
@@ -1525,9 +1509,9 @@ public final class Gson {
   @Override
   public String toString() {
     return "{serializeNulls:"
-        + serializeNulls
+        + gsonConfigurationOptions.getSerializeNulls()
         + ",factories:"
-        + factories
+        + gsonConfigurationOptions.getFactories()
         + ",instanceCreators:"
         + constructorConstructor
         + "}";

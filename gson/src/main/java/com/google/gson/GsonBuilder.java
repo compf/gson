@@ -91,31 +91,16 @@ import java.util.Objects;
  * @author Jesse Wilson
  */
 public final class GsonBuilder {
-  private Excluder excluder = Excluder.DEFAULT;
-  private LongSerializationPolicy longSerializationPolicy = LongSerializationPolicy.DEFAULT;
-  private FieldNamingStrategy fieldNamingPolicy = FieldNamingPolicy.IDENTITY;
-  private final Map<Type, InstanceCreator<?>> instanceCreators = new HashMap<>();
-  private final List<TypeAdapterFactory> factories = new ArrayList<>();
+    private FieldNamingStrategy fieldNamingPolicy = FieldNamingPolicy.IDENTITY;
 
-  /** tree-style hierarchy factories. These come after factories for backwards compatibility. */
+    /** tree-style hierarchy factories. These come after factories for backwards compatibility. */
   private final List<TypeAdapterFactory> hierarchyFactories = new ArrayList<>();
 
-  private boolean serializeNulls = DEFAULT_SERIALIZE_NULLS;
-  private String datePattern = DEFAULT_DATE_PATTERN;
-  private int dateStyle = DateFormat.DEFAULT;
-  private int timeStyle = DateFormat.DEFAULT;
-  private boolean complexMapKeySerialization = DEFAULT_COMPLEX_MAP_KEYS;
-  private boolean serializeSpecialFloatingPointValues = DEFAULT_SPECIALIZE_FLOAT_VALUES;
-  private boolean escapeHtmlChars = DEFAULT_ESCAPE_HTML;
-  private FormattingStyle formattingStyle = DEFAULT_FORMATTING_STYLE;
-  private boolean generateNonExecutableJson = DEFAULT_JSON_NON_EXECUTABLE;
-  private Strictness strictness = DEFAULT_STRICTNESS;
-  private boolean useJdkUnsafe = DEFAULT_USE_JDK_UNSAFE;
-  private ToNumberStrategy objectToNumberStrategy = DEFAULT_OBJECT_TO_NUMBER_STRATEGY;
-  private ToNumberStrategy numberToNumberStrategy = DEFAULT_NUMBER_TO_NUMBER_STRATEGY;
-  private final ArrayDeque<ReflectionAccessFilter> reflectionFilters = new ArrayDeque<>();
+    private boolean escapeHtmlChars = DEFAULT_ESCAPE_HTML;
+    private final ArrayDeque<ReflectionAccessFilter> reflectionFilters = new ArrayDeque<>();
+    private GsonConfigurationOptions gsonConfigurationOptions = new GsonConfigurationOptions(new ArrayList<>(), Excluder.DEFAULT, new HashMap<>(), DEFAULT_SERIALIZE_NULLS, DEFAULT_COMPLEX_MAP_KEYS, DEFAULT_JSON_NON_EXECUTABLE, DEFAULT_FORMATTING_STYLE, DEFAULT_STRICTNESS, DEFAULT_SPECIALIZE_FLOAT_VALUES, DEFAULT_USE_JDK_UNSAFE, DEFAULT_DATE_PATTERN, DateFormat.DEFAULT, DateFormat.DEFAULT, LongSerializationPolicy.DEFAULT, DEFAULT_OBJECT_TO_NUMBER_STRATEGY, DEFAULT_NUMBER_TO_NUMBER_STRATEGY);
 
-  /**
+    /**
    * Creates a GsonBuilder instance that can be used to build Gson with various configuration
    * settings. GsonBuilder follows the builder pattern, and it is typically used by first invoking
    * various configuration methods to set desired options, and finally calling {@link #create()}.
@@ -129,25 +114,25 @@ public final class GsonBuilder {
    * @param gson the gson instance whose configuration should be applied to a new GsonBuilder.
    */
   GsonBuilder(Gson gson) {
-    this.excluder = gson.excluder;
+    this.gsonConfigurationOptions.setExcluder(gson.gsonConfigurationOptions.getExcluder());
     this.fieldNamingPolicy = gson.fieldNamingStrategy;
-    this.instanceCreators.putAll(gson.instanceCreators);
-    this.serializeNulls = gson.serializeNulls;
-    this.complexMapKeySerialization = gson.complexMapKeySerialization;
-    this.generateNonExecutableJson = gson.generateNonExecutableJson;
+    this.gsonConfigurationOptions.getInstanceCreators().putAll(gson.gsonConfigurationOptions.getInstanceCreators());
+    this.gsonConfigurationOptions.setSerializeNulls(gson.gsonConfigurationOptions.getSerializeNulls());
+    this.gsonConfigurationOptions.setComplexMapKeySerialization(gson.gsonConfigurationOptions.getComplexMapKeySerialization());
+    this.gsonConfigurationOptions.setGenerateNonExecutableJson(gson.gsonConfigurationOptions.getGenerateNonExecutableJson());
     this.escapeHtmlChars = gson.htmlSafe;
-    this.formattingStyle = gson.formattingStyle;
-    this.strictness = gson.strictness;
-    this.serializeSpecialFloatingPointValues = gson.serializeSpecialFloatingPointValues;
-    this.longSerializationPolicy = gson.longSerializationPolicy;
-    this.datePattern = gson.datePattern;
-    this.dateStyle = gson.dateStyle;
-    this.timeStyle = gson.timeStyle;
-    this.factories.addAll(gson.builderFactories);
+    this.gsonConfigurationOptions.setFormattingStyle(gson.gsonConfigurationOptions.getFormattingStyle());
+    this.gsonConfigurationOptions.setStrictness(gson.gsonConfigurationOptions.getStrictness());
+    this.gsonConfigurationOptions.setSerializeSpecialFloatingPointValues(gson.gsonConfigurationOptions.getSerializeSpecialFloatingPointValues());
+    this.gsonConfigurationOptions.setLongSerializationPolicy(gson.gsonConfigurationOptions.getLongSerializationPolicy());
+    this.gsonConfigurationOptions.setDatePattern(gson.gsonConfigurationOptions.getDatePattern());
+    this.gsonConfigurationOptions.setDateStyle(gson.gsonConfigurationOptions.getDateStyle());
+    this.gsonConfigurationOptions.setTimeStyle(gson.gsonConfigurationOptions.getTimeStyle());
+    this.gsonConfigurationOptions.getFactories().addAll(gson.builderFactories);
     this.hierarchyFactories.addAll(gson.builderHierarchyFactories);
-    this.useJdkUnsafe = gson.useJdkUnsafe;
-    this.objectToNumberStrategy = gson.objectToNumberStrategy;
-    this.numberToNumberStrategy = gson.numberToNumberStrategy;
+    this.gsonConfigurationOptions.setUseJdkUnsafe(gson.gsonConfigurationOptions.getUseJdkUnsafe());
+    this.gsonConfigurationOptions.setObjectToNumberStrategy(gson.gsonConfigurationOptions.getObjectToNumberStrategy());
+    this.gsonConfigurationOptions.setNumberToNumberStrategy(gson.gsonConfigurationOptions.getNumberToNumberStrategy());
     this.reflectionFilters.addAll(gson.reflectionFilters);
   }
 
@@ -171,7 +156,7 @@ public final class GsonBuilder {
     if (Double.isNaN(version) || version < 0.0) {
       throw new IllegalArgumentException("Invalid version: " + version);
     }
-    excluder = excluder.withVersion(version);
+    gsonConfigurationOptions.setExcluder(gsonConfigurationOptions.getExcluder().withVersion(version));
     return this;
   }
 
@@ -192,7 +177,7 @@ public final class GsonBuilder {
   @CanIgnoreReturnValue
   public GsonBuilder excludeFieldsWithModifiers(int... modifiers) {
     Objects.requireNonNull(modifiers);
-    excluder = excluder.withModifiers(modifiers);
+    gsonConfigurationOptions.setExcluder(excluder.withModifiers(modifiers));
     return this;
   }
 
@@ -206,7 +191,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder generateNonExecutableJson() {
-    this.generateNonExecutableJson = true;
+    this.gsonConfigurationOptions.setGenerateNonExecutableJson(true);
     return this;
   }
 
@@ -222,7 +207,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder excludeFieldsWithoutExposeAnnotation() {
-    excluder = excluder.excludeFieldsWithoutExposeAnnotation();
+    gsonConfigurationOptions.setExcluder(gsonConfigurationOptions.getExcluder().excludeFieldsWithoutExposeAnnotation());
     return this;
   }
 
@@ -235,7 +220,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder serializeNulls() {
-    this.serializeNulls = true;
+    this.gsonConfigurationOptions.setSerializeNulls(true);
     return this;
   }
 
@@ -323,7 +308,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder enableComplexMapKeySerialization() {
-    complexMapKeySerialization = true;
+    gsonConfigurationOptions.setComplexMapKeySerialization(true);
     return this;
   }
 
@@ -350,7 +335,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder disableInnerClassSerialization() {
-    excluder = excluder.disableInnerClassSerialization();
+    gsonConfigurationOptions.setExcluder(excluder.disableInnerClassSerialization());
     return this;
   }
 
@@ -364,7 +349,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder setLongSerializationPolicy(LongSerializationPolicy serializationPolicy) {
-    this.longSerializationPolicy = Objects.requireNonNull(serializationPolicy);
+    this.gsonConfigurationOptions.setLongSerializationPolicy(Objects.requireNonNull(serializationPolicy));
     return this;
   }
 
@@ -407,7 +392,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder setObjectToNumberStrategy(ToNumberStrategy objectToNumberStrategy) {
-    this.objectToNumberStrategy = Objects.requireNonNull(objectToNumberStrategy);
+    this.gsonConfigurationOptions.setObjectToNumberStrategy(Objects.requireNonNull(objectToNumberStrategy));
     return this;
   }
 
@@ -421,7 +406,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder setNumberToNumberStrategy(ToNumberStrategy numberToNumberStrategy) {
-    this.numberToNumberStrategy = Objects.requireNonNull(numberToNumberStrategy);
+    this.gsonConfigurationOptions.setNumberToNumberStrategy(Objects.requireNonNull(numberToNumberStrategy));
     return this;
   }
 
@@ -454,7 +439,7 @@ public final class GsonBuilder {
   public GsonBuilder setExclusionStrategies(ExclusionStrategy... strategies) {
     Objects.requireNonNull(strategies);
     for (ExclusionStrategy strategy : strategies) {
-      excluder = excluder.withExclusionStrategy(strategy, true, true);
+      gsonConfigurationOptions.setExcluder(gsonConfigurationOptions.getExcluder().withExclusionStrategy(strategy, true, true));
     }
     return this;
   }
@@ -476,7 +461,7 @@ public final class GsonBuilder {
   @CanIgnoreReturnValue
   public GsonBuilder addSerializationExclusionStrategy(ExclusionStrategy strategy) {
     Objects.requireNonNull(strategy);
-    excluder = excluder.withExclusionStrategy(strategy, true, false);
+    gsonConfigurationOptions.setExcluder(gsonConfigurationOptions.getExcluder().withExclusionStrategy(strategy, true, false));
     return this;
   }
 
@@ -497,7 +482,7 @@ public final class GsonBuilder {
   @CanIgnoreReturnValue
   public GsonBuilder addDeserializationExclusionStrategy(ExclusionStrategy strategy) {
     Objects.requireNonNull(strategy);
-    excluder = excluder.withExclusionStrategy(strategy, false, true);
+    gsonConfigurationOptions.setExcluder(gsonConfigurationOptions.getExcluder().withExclusionStrategy(strategy, false, true));
     return this;
   }
 
@@ -526,7 +511,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder setFormattingStyle(FormattingStyle formattingStyle) {
-    this.formattingStyle = Objects.requireNonNull(formattingStyle);
+    this.gsonConfigurationOptions.setFormattingStyle(Objects.requireNonNull(formattingStyle));
     return this;
   }
 
@@ -564,7 +549,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder setStrictness(Strictness strictness) {
-    this.strictness = Objects.requireNonNull(strictness);
+    this.gsonConfigurationOptions.setStrictness(Objects.requireNonNull(strictness));
     return this;
   }
 
@@ -610,7 +595,7 @@ public final class GsonBuilder {
         throw new IllegalArgumentException("The date pattern '" + pattern + "' is not valid", e);
       }
     }
-    this.datePattern = pattern;
+    this.gsonConfigurationOptions.setDatePattern(pattern);
     return this;
   }
 
@@ -637,8 +622,8 @@ public final class GsonBuilder {
   @Deprecated
   @CanIgnoreReturnValue
   public GsonBuilder setDateFormat(int dateStyle) {
-    this.dateStyle = checkDateFormatStyle(dateStyle);
-    this.datePattern = null;
+    this.gsonConfigurationOptions.setDateStyle(checkDateFormatStyle(dateStyle));
+    this.gsonConfigurationOptions.setDatePattern(null);
     return this;
   }
 
@@ -660,9 +645,9 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder setDateFormat(int dateStyle, int timeStyle) {
-    this.dateStyle = checkDateFormatStyle(dateStyle);
-    this.timeStyle = checkDateFormatStyle(timeStyle);
-    this.datePattern = null;
+    this.gsonConfigurationOptions.setDateStyle(checkDateFormatStyle(dateStyle));
+    this.gsonConfigurationOptions.setTimeStyle(checkDateFormatStyle(timeStyle));
+    this.gsonConfigurationOptions.setDatePattern(null);
     return this;
   }
 
@@ -715,17 +700,17 @@ public final class GsonBuilder {
     }
 
     if (typeAdapter instanceof InstanceCreator<?>) {
-      instanceCreators.put(type, (InstanceCreator<?>) typeAdapter);
+      gsonConfigurationOptions.getInstanceCreators().put(type, (InstanceCreator<?>) typeAdapter);
     }
     if (typeAdapter instanceof JsonSerializer<?> || typeAdapter instanceof JsonDeserializer<?>) {
       TypeToken<?> typeToken = TypeToken.get(type);
-      factories.add(TreeTypeAdapter.newFactoryWithMatchRawType(typeToken, typeAdapter));
+      gsonConfigurationOptions.getFactories().add(TreeTypeAdapter.newFactoryWithMatchRawType(typeToken, typeAdapter));
     }
     if (typeAdapter instanceof TypeAdapter<?>) {
       @SuppressWarnings({"unchecked", "rawtypes"})
       TypeAdapterFactory factory =
           TypeAdapters.newFactory(TypeToken.get(type), (TypeAdapter) typeAdapter);
-      factories.add(factory);
+      gsonConfigurationOptions.getFactories().add(factory);
     }
     return this;
   }
@@ -750,7 +735,7 @@ public final class GsonBuilder {
   @CanIgnoreReturnValue
   public GsonBuilder registerTypeAdapterFactory(TypeAdapterFactory factory) {
     Objects.requireNonNull(factory);
-    factories.add(factory);
+    gsonConfigurationOptions.getFactories().add(factory);
     return this;
   }
 
@@ -789,7 +774,7 @@ public final class GsonBuilder {
       @SuppressWarnings({"unchecked", "rawtypes"})
       TypeAdapterFactory factory =
           TypeAdapters.newTypeHierarchyFactory(baseType, (TypeAdapter) typeAdapter);
-      factories.add(factory);
+      gsonConfigurationOptions.getFactories().add(factory);
     }
     return this;
   }
@@ -815,7 +800,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder serializeSpecialFloatingPointValues() {
-    this.serializeSpecialFloatingPointValues = true;
+    this.gsonConfigurationOptions.setSerializeSpecialFloatingPointValues(true);
     return this;
   }
 
@@ -836,7 +821,7 @@ public final class GsonBuilder {
    */
   @CanIgnoreReturnValue
   public GsonBuilder disableJdkUnsafe() {
-    this.useJdkUnsafe = false;
+    this.gsonConfigurationOptions.setUseJdkUnsafe(false);
     return this;
   }
 
@@ -875,37 +860,37 @@ public final class GsonBuilder {
    */
   public Gson create() {
     List<TypeAdapterFactory> factories =
-        new ArrayList<>(this.factories.size() + this.hierarchyFactories.size() + 3);
-    factories.addAll(this.factories);
+        new ArrayList<>(this.gsonConfigurationOptions.getFactories().size() + this.hierarchyFactories.size() + 3);
+    factories.addAll(this.gsonConfigurationOptions.getFactories());
     Collections.reverse(factories);
 
     List<TypeAdapterFactory> hierarchyFactories = new ArrayList<>(this.hierarchyFactories);
     Collections.reverse(hierarchyFactories);
     factories.addAll(hierarchyFactories);
 
-    addTypeAdaptersForDate(datePattern, dateStyle, timeStyle, factories);
+    addTypeAdaptersForDate(gsonConfigurationOptions.getDatePattern(), gsonConfigurationOptions.getDateStyle(), gsonConfigurationOptions.getTimeStyle(), factories);
 
     return new Gson(
-        excluder,
+            gsonConfigurationOptions.getExcluder(),
         fieldNamingPolicy,
-        new HashMap<>(instanceCreators),
-        serializeNulls,
-        complexMapKeySerialization,
-        generateNonExecutableJson,
+        new HashMap<>(gsonConfigurationOptions.getInstanceCreators()),
+            gsonConfigurationOptions.getSerializeNulls(),
+            gsonConfigurationOptions.getComplexMapKeySerialization(),
+            gsonConfigurationOptions.getGenerateNonExecutableJson(),
         escapeHtmlChars,
-        formattingStyle,
-        strictness,
-        serializeSpecialFloatingPointValues,
-        useJdkUnsafe,
-        longSerializationPolicy,
-        datePattern,
-        dateStyle,
-        timeStyle,
-        new ArrayList<>(this.factories),
+            gsonConfigurationOptions.getFormattingStyle(),
+            gsonConfigurationOptions.getStrictness(),
+            gsonConfigurationOptions.getSerializeSpecialFloatingPointValues(),
+            gsonConfigurationOptions.getUseJdkUnsafe(),
+            gsonConfigurationOptions.getLongSerializationPolicy(),
+            gsonConfigurationOptions.getDatePattern(),
+            gsonConfigurationOptions.getDateStyle(),
+            gsonConfigurationOptions.getTimeStyle(),
+        new ArrayList<>(this.gsonConfigurationOptions.getFactories()),
         new ArrayList<>(this.hierarchyFactories),
         factories,
-        objectToNumberStrategy,
-        numberToNumberStrategy,
+            gsonConfigurationOptions.getObjectToNumberStrategy(),
+            gsonConfigurationOptions.getNumberToNumberStrategy(),
         new ArrayList<>(reflectionFilters));
   }
 
